@@ -1,0 +1,34 @@
+{
+  "plugins": {
+    "guess-types": {
+      
+    },
+    "outline": {
+      
+    },
+    "node": {
+      
+    },
+    "jshint": {
+      "config": {
+        "bitwise": true,
+        "curly": true,
+        "eqeqeq": true,
+        "forin": true,
+        "latedef": true,
+        "maxerr": 100,
+        "noarg": true,
+        "node": true,
+        "nonew": true,
+        "esnext": true
+      }
+    },
+    "highlight": {
+      
+    }
+  },
+  "libs": [
+    
+  ],
+  "ecmaVersion": 6
+}
