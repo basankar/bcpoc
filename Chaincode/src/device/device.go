@@ -194,17 +194,17 @@ func (t *SimpleChaincode) get_caller_data(stub shim.ChaincodeStubInterface) (str
 //					JSON into the Vehicle struct for use in the contract. Returns the Vehcile struct.
 //					Returns empty v if it errors.
 //==============================================================================================================================
-func (t *SimpleChaincode) retrieve_v5c(stub shim.ChaincodeStubInterface, v5cID string) (Vehicle, error) {
+func (t *SimpleChaincode) retrieve_imei(stub shim.ChaincodeStubInterface, imeiId string) (Device, error) {
 
-	var v Vehicle
+	var v Device
 
-	bytes, err := stub.GetState(v5cID);
+	bytes, err := stub.GetState(imeiId);
 
-	if err != nil {	fmt.Printf("RETRIEVE_V5C: Failed to invoke vehicle_code: %s", err); return v, errors.New("RETRIEVE_V5C: Error retrieving vehicle with v5cID = " + v5cID) }
+	if err != nil {	fmt.Printf("RETRIEVE_IMEI: Failed to invoke vehicle_code: %s", err); return v, errors.New("RETRIEVE_IMEI: Error retrieving vehicle with v5cID = " + imeiId) }
 
 	err = json.Unmarshal(bytes, &v);
 
-    if err != nil {	fmt.Printf("RETRIEVE_V5C: Corrupt vehicle record "+string(bytes)+": %s", err); return v, errors.New("RETRIEVE_V5C: Corrupt vehicle record"+string(bytes))	}
+    if err != nil {	fmt.Printf("RETRIEVE_IMEI: Corrupt vehicle record "+string(bytes)+": %s", err); return v, errors.New("RETRIEVE_IMEI: Corrupt vehicle record"+string(bytes))	}
 
 	return v, nil
 }
@@ -213,15 +213,15 @@ func (t *SimpleChaincode) retrieve_v5c(stub shim.ChaincodeStubInterface, v5cID s
 // save_changes - Writes to the ledger the Vehicle struct passed in a JSON format. Uses the shim file's
 //				  method 'PutState'.
 //==============================================================================================================================
-func (t *SimpleChaincode) save_changes(stub shim.ChaincodeStubInterface, v Vehicle) (bool, error) {
+func (t *SimpleChaincode) save_changes(stub shim.ChaincodeStubInterface, v Device) (bool, error) {
 
 	bytes, err := json.Marshal(v)
 
-	if err != nil { fmt.Printf("SAVE_CHANGES: Error converting vehicle record: %s", err); return false, errors.New("Error converting vehicle record") }
+	if err != nil { fmt.Printf("SAVE_CHANGES: Error converting device record: %s", err); return false, errors.New("Error converting device record") }
 
 	err = stub.PutState(v.V5cID, bytes)
 
-	if err != nil { fmt.Printf("SAVE_CHANGES: Error storing vehicle record: %s", err); return false, errors.New("Error storing vehicle record") }
+	if err != nil { fmt.Printf("SAVE_CHANGES: Error storing device record: %s", err); return false, errors.New("Error storing device record") }
 
 	return true, nil
 }
@@ -249,8 +249,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	if err != nil { return nil, errors.New("Error retrieving caller information")}
 
 
-	if function == "create_vehicle" {
-        return t.create_vehicle(stub, caller, caller_affiliation, args[0])
+	if function == "create_device" {
+        return t.create_device(stub, caller, caller_affiliation, args[0])
 	} else if function == "ping" {
         return t.ping(stub)
     } else { 																				// If the function is not a create then there must be a car so we need to retrieve the car.
@@ -278,7 +278,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 		} else if function == "update_make"  	    { return t.update_make(stub, v, caller, caller_affiliation, args[0])
 		} else if function == "update_model"        { return t.update_model(stub, v, caller, caller_affiliation, args[0])
-		} else if function == "update_reg" { return t.update_registration(stub, v, caller, caller_affiliation, args[0])
+		} else if function == "update_reg" 			{ return t.update_registration(stub, v, caller, caller_affiliation, args[0])
 		} else if function == "update_vin" 			{ return t.update_vin(stub, v, caller, caller_affiliation, args[0])
         } else if function == "update_colour" 		{ return t.update_colour(stub, v, caller, caller_affiliation, args[0])
 		} else if function == "scrap_vehicle" 		{ return t.scrap_vehicle(stub, v, caller, caller_affiliation) }
@@ -300,11 +300,11 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
     logger.Debug("caller: ", caller)
     logger.Debug("affiliation: ", caller_affiliation)
 
-	if function == "get_vehicle_details" {
+	if function == "get_device_details" {
 		if len(args) != 1 { fmt.Printf("Incorrect number of arguments passed"); return nil, errors.New("QUERY: Incorrect number of arguments passed") }
-		v, err := t.retrieve_v5c(stub, args[0])
+		v, err := t.retrieve_IMEI(stub, args[0])
 		if err != nil { fmt.Printf("QUERY: Error retrieving v5c: %s", err); return nil, errors.New("QUERY: Error retrieving v5c "+err.Error()) }
-		return t.get_vehicle_details(stub, v, caller, caller_affiliation)
+		return t.get_device_details(stub, v, caller, caller_affiliation)
 	} else if function == "check_unique_v5c" {
 		return t.check_unique_v5c(stub, args[0], caller, caller_affiliation)
 	} else if function == "get_vehicles" {
@@ -333,70 +333,79 @@ func (t *SimpleChaincode) ping(stub shim.ChaincodeStubInterface) ([]byte, error)
 //=================================================================================================================================
 //	 Create Vehicle - Creates the initial JSON for the vehcile and then saves it to the ledger.
 //=================================================================================================================================
-func (t *SimpleChaincode) create_vehicle(stub shim.ChaincodeStubInterface, caller string, caller_affiliation string, v5cID string) ([]byte, error) {
+func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller string, caller_affiliation string, imeiId string) ([]byte, error) {
 	var v Vehicle
 
-	v5c_ID         := "\"v5cID\":\""+v5cID+"\", "							// Variables to define the JSON
-	vin            := "\"VIN\":0, "
-	make           := "\"Make\":\"UNDEFINED\", "
-	model          := "\"Model\":\"UNDEFINED\", "
-	reg            := "\"Reg\":\"UNDEFINED\", "
-	owner          := "\"Owner\":\""+caller+"\", "
-	colour         := "\"Colour\":\"UNDEFINED\", "
-	leaseContract  := "\"LeaseContractID\":\"UNDEFINED\", "
-	status         := "\"Status\":0, "
-	scrapped       := "\"Scrapped\":false"
+//	v5c_ID         := "\"v5cID\":\""+v5cID+"\", "							// Variables to define the JSON
+//	vin            := "\"VIN\":0, "
+//	make           := "\"Make\":\"UNDEFINED\", "
+//	model          := "\"Model\":\"UNDEFINED\", "
+//	reg            := "\"Reg\":\"UNDEFINED\", "
+//	owner          := "\"Owner\":\""+caller+"\", "
+//	colour         := "\"Colour\":\"UNDEFINED\", "
+//	leaseContract  := "\"LeaseContractID\":\"UNDEFINED\", "
+//	status         := "\"Status\":0, "
+//	scrapped       := "\"Scrapped\":false"
+	devicename	 	:= "\"DeviceName\":\"LENOVO\", "
+	devicemodel		:= "\"DeviceModel\":\"VIBE\", "
+	dateofmanf		:= "\"DateOfManf\":\"03-03-2017\", "
+	dateofsale		:= "\"DateOfSale\":\"UNDEFINED\", "
+	oldimei			:= "\"OldIMEI\":\"UNDEFINED\", "
+	imei			:=	"\"IMEI\":\"UNDEFINED\", "
+	status			:=  "\"Status\":\"CREATED\", "
+	soldby			:=  "\"SoldBy\":\"UNDEFINED\", "
+	owner			:=	"\"Owner\":\"MANF\"    
 
-	vehicle_json := "{"+v5c_ID+vin+make+model+reg+owner+colour+leaseContract+status+scrapped+"}" 	// Concatenates the variables to create the total JSON object
+	//vehicle_json := "{"+v5c_ID+vin+make+model+reg+owner+colour+leaseContract+status+scrapped+"}" 	// Concatenates the variables to create the total JSON object
+	device_json := "{"+imei+devicename+devicemodel+dateofmanf+dateofsale+oldimei+imei+status+soldby+owner+"}"
+	matched, err := regexp.Match("^[A-z][A-z][0-9]{7}", []byte(imeiId))  				// matched = true if the v5cID passed fits format of two letters followed by seven digits
 
-	matched, err := regexp.Match("^[A-z][A-z][0-9]{7}", []byte(v5cID))  				// matched = true if the v5cID passed fits format of two letters followed by seven digits
-
-												if err != nil { fmt.Printf("CREATE_VEHICLE: Invalid v5cID: %s", err); return nil, errors.New("Invalid v5cID") }
-
-	if 				v5c_ID  == "" 	 ||
-					matched == false    {
-																		fmt.Printf("CREATE_VEHICLE: Invalid v5cID provided");
-																		return nil, errors.New("Invalid v5cID provided")
+	if err != nil 
+	{ 
+		fmt.Printf("CREATE_DEVICE: Invalid imeiId: %s", err); return nil, errors.New("Invalid imeiId") 
 	}
 
-	err = json.Unmarshal([]byte(vehicle_json), &v)							// Convert the JSON defined above into a vehicle object for go
+	if 	imei  == "" || matched == false    
+	{
+		fmt.Printf("CREATE_DEVICE: Invalid imeiId provided");
+		return nil, errors.New("Invalid imeiId provided")
+	}
 
-																		if err != nil { return nil, errors.New("Invalid JSON object") }
+	err = json.Unmarshal([]byte(device_json), &d)							// Convert the JSON defined above into a vehicle object for go
+	if err != nil 
+	{ 
+		return nil, errors.New("Invalid JSON object") 
+	}
 
-	record, err := stub.GetState(v.V5cID) 								// If not an error then a record exists so cant create a new car with this V5cID as it must be unique
+	record, err := stub.GetState(d.imei) 								// If not an error then a record exists so cant create a new car with this V5cID as it must be unique
+	if record != nil { return nil, errors.New("Device already exists") }
 
-																		if record != nil { return nil, errors.New("Vehicle already exists") }
-
-	if 	caller_affiliation != AUTHORITY {							// Only the regulator can create a new v5c
-
-		return nil, errors.New(fmt.Sprintf("Permission Denied. create_vehicle. %v === %v", caller_affiliation, AUTHORITY))
-
+	if 	caller_affiliation != MANUFACTURER 
+	{							// Only the regulator can create a new imei
+		return nil, errors.New(fmt.Sprintf("Permission Denied. create_device. %v === %v", caller_affiliation, MANUFACTURER))
 	}
 
 	_, err  = t.save_changes(stub, v)
 
-																		if err != nil { fmt.Printf("CREATE_VEHICLE: Error saving changes: %s", err); return nil, errors.New("Error saving changes") }
+	if err != nil 
+	{ 
+		fmt.Printf("CREATE_DEVICE: Error saving changes: %s", err); 
+		return nil, errors.New("Error saving changes") 
+	}
 
 	bytes, err := stub.GetState("imeiList")
+	if err != nil { return nil, errors.New("Unable to get imeiList") }
 
-																		if err != nil { return nil, errors.New("Unable to get imeiList") }
-
-	var imeiList V5C_Holder
-
+	var imeiList IMEI_Holder
 	err = json.Unmarshal(bytes, &imeiList)
+	if err != nil {	return nil, errors.New("Corrupt IMEI_Holder record") }
 
-																		if err != nil {	return nil, errors.New("Corrupt V5C_Holder record") }
-
-	imeiList.V5Cs = append(imeiList.V5Cs, v5cID)
-
-
+	imeiList.IMEIs = append(imeiList.IMEIs, imeiID)
 	bytes, err = json.Marshal(imeiList)
-
-															if err != nil { fmt.Print("Error creating V5C_Holder record") }
+	if err != nil { fmt.Print("Error creating IMEI_Holder record") }
 
 	err = stub.PutState("imeiList", bytes)
-
-															if err != nil { return nil, errors.New("Unable to put the state") }
+	if err != nil { return nil, errors.New("Unable to put the state") }
 
 	return nil, nil
 
@@ -730,18 +739,18 @@ func (t *SimpleChaincode) scrap_vehicle(stub shim.ChaincodeStubInterface, v Vehi
 //=================================================================================================================================
 //	 get_vehicle_details
 //=================================================================================================================================
-func (t *SimpleChaincode) get_vehicle_details(stub shim.ChaincodeStubInterface, v Vehicle, caller string, caller_affiliation string) ([]byte, error) {
+func (t *SimpleChaincode) get_device_details(stub shim.ChaincodeStubInterface, v Device, caller string, caller_affiliation string) ([]byte, error) {
 
 	bytes, err := json.Marshal(v)
 
-																if err != nil { return nil, errors.New("GET_VEHICLE_DETAILS: Invalid vehicle object") }
+																if err != nil { return nil, errors.New("GET_DEVICE_DETAILS: Invalid device object") }
 
 	if 		v.Owner				== caller		||
-			caller_affiliation	== AUTHORITY	{
+			caller_affiliation	== MANUFACTURER	{
 
 					return bytes, nil
 	} else {
-																return nil, errors.New("Permission Denied. get_vehicle_details")
+																return nil, errors.New("Permission Denied. get_device_details")
 	}
 
 }
