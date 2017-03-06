@@ -334,7 +334,7 @@ func (t *SimpleChaincode) ping(stub shim.ChaincodeStubInterface) ([]byte, error)
 //	 Create Vehicle - Creates the initial JSON for the vehcile and then saves it to the ledger.
 //=================================================================================================================================
 func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller string, caller_affiliation string, imeiId string) ([]byte, error) {
-	var v Device
+	var d Device
 
 //	v5c_ID         := "\"v5cID\":\""+v5cID+"\", "							// Variables to define the JSON
 //	vin            := "\"VIN\":0, "
@@ -759,7 +759,7 @@ func (t *SimpleChaincode) get_devices(stub shim.ChaincodeStubInterface, caller s
 
 																			if err != nil { return nil, errors.New("Unable to get imeiList") }
 
-	var imeiList V5C_Holder
+	var imeiList IMEI_Holder
 
 	err = json.Unmarshal(bytes, &imeiList)
 
@@ -770,13 +770,13 @@ func (t *SimpleChaincode) get_devices(stub shim.ChaincodeStubInterface, caller s
 	var temp []byte
 	var v Vehicle
 
-	for _, v5c := range imeiList.V5Cs {
+	for _, IMEI := range imeiList.IMEIs {
 
-		v, err = t.retrieve_IMEI(stub, v5c)
+		v, err = t.retrieve_IMEI(stub, IMEI)
 
-		if err != nil {return nil, errors.New("Failed to retrieve V5C")}
+		if err != nil {return nil, errors.New("Failed to retrieve IMEI")}
 
-		temp, err = t.get_vehicle_details(stub, v, caller, caller_affiliation)
+		temp, err = t.get_device_details(stub, v, caller, caller_affiliation)
 
 		if err == nil {
 			result += string(temp) + ","
