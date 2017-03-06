@@ -3,8 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"encoding/json"
 	"regexp"
@@ -374,7 +372,7 @@ func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller
 		return nil, errors.New("Invalid JSON object") 
 	}
 
-	record, err := stub.GetState(d.imei) 								// If not an error then a record exists so cant create a new car with this V5cID as it must be unique
+	record, err := stub.GetState(d.IMEI) 								// If not an error then a record exists so cant create a new car with this V5cID as it must be unique
 	if record != nil { return nil, errors.New("Device already exists") }
 
 	if 	caller_affiliation != MANUFACTURER {							// Only the regulator can create a new imei
@@ -395,7 +393,7 @@ func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller
 	err = json.Unmarshal(bytes, &imeiList)
 	if err != nil {	return nil, errors.New("Corrupt IMEI_Holder record") }
 
-	imeiList.IMEIs = append(imeiList.IMEIs, imeiID)
+	imeiList.IMEIs = append(imeiList.IMEIs, imeiId)
 	bytes, err = json.Marshal(imeiList)
 	if err != nil { fmt.Print("Error creating IMEI_Holder record") }
 
@@ -768,7 +766,7 @@ func (t *SimpleChaincode) get_devices(stub shim.ChaincodeStubInterface, caller s
 	result := "["
 
 	var temp []byte
-	var v Vehicle
+	var v Device
 
 	for _, IMEI := range imeiList.IMEIs {
 
