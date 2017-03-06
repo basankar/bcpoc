@@ -104,9 +104,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	err = stub.PutState("imeiList", bytes)
 
-	for i:=0; i < len(args); i=i+2 {
-		t.add_ecert(stub, args[i], args[i+1])
-	}
+	//for i:=0; i < len(args); i=i+2 {
+	//	t.add_ecert(stub, args[i], args[i+1])
+	//}
 
 	return nil, nil
 }
