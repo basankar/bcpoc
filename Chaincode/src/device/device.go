@@ -98,13 +98,13 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	bytes, err := json.Marshal(imeiList)
 
-    if err != nil { return nil, errors.New("Error creating V5C_Holder record") }
+    if err != nil { return nil, errors.New("Error creating IMEI_Holder record") }
 
 	err = stub.PutState("imeiList", bytes)
 
-	//for i:=0; i < len(args); i=i+2 {
-	//	t.add_ecert(stub, args[i], args[i+1])
-	//}
+	for i:=0; i < len(args); i=i+2 {
+		t.add_ecert(stub, args[i], args[i+1])
+	}
 
 	return nil, nil
 }
@@ -198,11 +198,11 @@ func (t *SimpleChaincode) retrieve_IMEI(stub shim.ChaincodeStubInterface, imeiId
 
 	bytes, err := stub.GetState(imeiId);
 
-	if err != nil {	fmt.Printf("RETRIEVE_IMEI: Failed to invoke vehicle_code: %s", err); return v, errors.New("RETRIEVE_IMEI: Error retrieving vehicle with v5cID = " + imeiId) }
+	if err != nil {	fmt.Printf("RETRIEVE_IMEI: Failed to invoke imei_code: %s", err); return v, errors.New("RETRIEVE_IMEI: Error retrieving device with imeiId = " + imeiId) }
 
 	err = json.Unmarshal(bytes, &v);
 
-    if err != nil {	fmt.Printf("RETRIEVE_IMEI: Corrupt vehicle record "+string(bytes)+": %s", err); return v, errors.New("RETRIEVE_IMEI: Corrupt vehicle record"+string(bytes))	}
+    if err != nil {	fmt.Printf("RETRIEVE_IMEI: Corrupt device record "+string(bytes)+": %s", err); return v, errors.New("RETRIEVE_IMEI: Corrupt device record"+string(bytes))	}
 
 	return v, nil
 }
@@ -344,14 +344,14 @@ func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller
 //	leaseContract  := "\"LeaseContractID\":\"UNDEFINED\", "
 //	status         := "\"Status\":0, "
 //	scrapped       := "\"Scrapped\":false"
-	devicename	 	:= "\"DeviceName\":LENOVO" 
-	devicemodel		:= "\"DeviceModel\":VIBE"
-	dateofmanf		:= "\"DateOfManf\":03-03-2017"
-	dateofsale		:= "\"DateOfSale\":UNDEFINED"
-	oldimei			:= "\"OldIMEI\":UNDEFINED"
-	imei			:=	"\"IMEI\":UNDEFINED"
-	status			:=  "\"Status\":CREATED"
-	soldby			:=  "\"SoldBy\":UNDEFINED"
+	devicename	 	:= "\"DeviceName\":LENOVO , " 
+	devicemodel		:= "\"DeviceModel\":VIBE , "
+	dateofmanf		:= "\"DateOfManf\":03-03-2017 , "
+	dateofsale		:= "\"DateOfSale\":UNDEFINED , "
+	oldimei			:= "\"OldIMEI\":UNDEFINED , "
+	imei			:=	"\"IMEI\":\""+imeiId+"\" , "
+	status			:=  "\"Status\":CREATED , "
+	soldby			:=  "\"SoldBy\":UNDEFINED , "
 	owner			:=	"\"Owner\":MANF"    
 
 	//vehicle_json := "{"+v5c_ID+vin+make+model+reg+owner+colour+leaseContract+status+scrapped+"}" 	// Concatenates the variables to create the total JSON object
