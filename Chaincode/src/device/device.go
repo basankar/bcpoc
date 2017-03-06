@@ -283,7 +283,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 //        } else if function == "update_colour" 		{ return t.update_colour(stub, v, caller, caller_affiliation, args[0])
 //		} else if function == "scrap_vehicle" 		{ return t.scrap_vehicle(stub, v, caller, caller_affiliation) }
 //
-//		return nil, errors.New("Function of the name "+ function +" doesn't exist.")
+		return nil, errors.New("Function of the name "+ function +" doesn't exist.")
 
 	}
 }
@@ -305,10 +305,10 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		v, err := t.retrieve_IMEI(stub, args[0])
 		if err != nil { fmt.Printf("QUERY: Error retrieving v5c: %s", err); return nil, errors.New("QUERY: Error retrieving v5c "+err.Error()) }
 		return t.get_device_details(stub, v, caller, caller_affiliation)
-	} else if function == "check_unique_v5c" {
+	} else if function == "check_unique_IMEI" {
 		return t.check_unique_IMEI(stub, args[0], caller, caller_affiliation)
-	} else if function == "get_vehicles" {
-		return t.get_vehicles(stub, caller, caller_affiliation)
+	} else if function == "get_devices" {
+		return t.get_devices(stub, caller, caller_affiliation)
 	} else if function == "get_ecert" {
 		return t.get_ecert(stub, args[0])
 	} else if function == "ping" {
@@ -334,7 +334,7 @@ func (t *SimpleChaincode) ping(stub shim.ChaincodeStubInterface) ([]byte, error)
 //	 Create Vehicle - Creates the initial JSON for the vehcile and then saves it to the ledger.
 //=================================================================================================================================
 func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller string, caller_affiliation string, imeiId string) ([]byte, error) {
-	var v Vehicle
+	var v Device
 
 //	v5c_ID         := "\"v5cID\":\""+v5cID+"\", "							// Variables to define the JSON
 //	vin            := "\"VIN\":0, "
@@ -378,10 +378,10 @@ func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller
 	if record != nil { return nil, errors.New("Device already exists") }
 
 	if 	caller_affiliation != MANUFACTURER {							// Only the regulator can create a new imei
-		return nil, errors.New(fmt.Sprintf("Permission Denied. create_device. %v === %v", caller_affiliation, MANUFACTURER))
+		return nil, errors.New(fmt.Sprintf("Permission Denied. create_device. %d === %d", caller_affiliation, MANUFACTURER))
 	}
 
-	_, err  = t.save_changes(stub, v)
+	_, err  = t.save_changes(stub, d)
 
 	if err != nil { 
 		fmt.Printf("CREATE_DEVICE: Error saving changes: %s", err); 
@@ -795,7 +795,7 @@ func (t *SimpleChaincode) get_devices(stub shim.ChaincodeStubInterface, caller s
 //=================================================================================================================================
 //	 check_unique_v5c
 //=================================================================================================================================
-func (t *SimpleChaincode) check_unique_v5c(stub shim.ChaincodeStubInterface, imeiId string, caller string, caller_affiliation string) ([]byte, error) {
+func (t *SimpleChaincode) check_unique_IMEI(stub shim.ChaincodeStubInterface, imeiId string, caller string, caller_affiliation string) ([]byte, error) {
 	_, err := t.retrieve_IMEI(stub, imeiId)
 	if err == nil {
 		return []byte("false"), errors.New("IMEI is not unique")
