@@ -49,18 +49,18 @@ func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function stri
 }
 
 func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
-	var dev  Device
+	var d  Device
 	if function == "get_device_details" {
-		dev, err = t.get_device(stub, args[0])
+		d, err := t.get_device(stub, args[0])
 		if err != nil { fmt.Printf("error retrieving device details"); return nil, errors.New("error retrieving device details")}
-		return t.get_dev_details(stub, &dev)
+		return t.get_dev_details(stub, &d)
 	}
 	return nil, nil
 }
 
 func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId string) ([]byte, error) {
 	
-	var dev Device
+	var d Device
 	
 	DeviceName  := "\"deviceName\":\"LENOVO\", "
 	DeviceModel := "\"devicemodel\":\"VIBE\", "
@@ -72,20 +72,20 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 	SoldBy     	:= "\"soldby\":\"UNDEFINED\", "
 	Owner     	:= "\"owner\":\"MANF\" "
 	
-	json_device = " {" +deviceName+DeviceModel+DateOfManf+DateOfSale+OldIMEI+IMEI_ID+Status+SoldBy+Owner+"} "
+	json_device := " {" +DeviceName+DeviceModel+DateOfManf+DateOfSale+OldIMEI+IMEI_ID+Status+SoldBy+Owner+"} "
 	
 	
-	if IMEI_ID = null {
+	if IMEI_ID == null {
 		fmt.Printf("Invalid device ID")
 	}
 	
-	err = json.Unmarshal([]byte(json_device), &dev)
+	err = json.Unmarshal([]byte(json_device), &d)
 	
-	record, err = stub.GetState(dev.IMEI)
+	record, err := stub.GetState(d.IMEI)
 	
 	if record != nil { return nil, errors.New("Device already exists") }
 	
-	_, err = t.save_changes(stub, &dev)
+	_, err = t.save_changes(stub, &d)
 	
 	if err != nil { fmt.Printf("CREATEDEVICE: Error saving changes: %s", err); return nil, errors.New("Error saving changes") }
 
