@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"encoding/json"
+	"regexp"
+	"strings"
 )
 
 var logger = shim.NewLogger("DIChaincode")
@@ -27,42 +30,42 @@ type Device struct {
 type SimpleChainCode Struct {
 }
 
-func (t *SimpleChainCode) Init(stub shim.ChaincodeStubInterface, function string, args[] string) ([]bytes, error ){
+func (t *SimpleChainCode) Init(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error ){
 	
 	var imeiIds IMEI_Holder
 	
 	bytes, err := json.marshal(imeiIds);
 	
-	err = shim.putState("imeiIds", bytes)
+	err = stub.PutState("imeiIds", bytes)
 	
 	return nil, nil
 	 
 } 
 
-func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args[] string) ([]bytes, error){
+func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error){
 	
 	if function = "create_device" {
 		return	t.createDevice(stub, args[])
-	}
-		
+	}	
+	return nil, nil
 }
 
-func (t *SimpleChainCode) Query(Stub shim.ChaincodeStubInterface, function string, args[] string) ([]bytes, error) {
+func (t *SimpleChainCode) Query(Stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
 	var dev  Device
 	if function = "get_device_details" {
 		dev, err = t.get_device(stub, args[0])
-		if err != nill { fmt.Printf("error retrieving device details") return dev, errors.New("error retrieving device details")}
+		if err != nil { fmt.Printf("error retrieving device details") return dev, errors.New("error retrieving device details")}
 		return t.get_dev_details(stub, &dev)
 	}
 }
 
-func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId string) ([]byte, errors) {
+func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId string) ([]byte, error) {
 	
 	var dev Device
 	
 	DeviceName  := "\"deviceName\":\"LENOVO\", "
 	DeviceModel := "\"devicemodel\":\"VIBE\", "
-	DateOfManf  := "\"dateofmanf\":\"03-12-2016\", "
+	DateOfManf  := "\"dateofmanf\":\"''03-12-2016''\" , "
 	DateOfSale  := "\"dateofsale\":\"UNDEFINED\", "
 	OldIMEI     := "\"oldimei\":\"UNDEFINED\", "
 	IMEI_ID     := "\"imei\":\""+imeiId+"\, "
@@ -79,9 +82,9 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 	
 	err = json.unmarshal([]byte(json_device), &dev)
 	
-	record, err = shim.GetState(dev.IMEI)
+	record, err = stub.GetState(dev.IMEI)
 	
-	if record != nil { return nil, errors.new("Device already exists") }
+	if record != nil { return nil, errors.New("Device already exists") }
 	
 	_, err = t.save_changes(stub, &dev)
 	
@@ -124,13 +127,13 @@ func (t *SimpleChaincode) save_changes(stub shim.ChaincodeStubInterface, d Devic
 	return true, nil
 }
 
-func (t *SimpleChainCode) get_device(stub t.ChaincodeStubInterface, imeiId string) (Device, errors) {
-	  dev, err = shim.GetState(imeiId)
+func (t *SimpleChainCode) get_device(stub t.ChaincodeStubInterface, imeiId string) (Device, error) {
+	  dev, err = stub.GetState(imeiId)
 	  if err != nil { fmt.Printf("error while retrieving device") return dev, errors.New("error retrieving device") }
 	  return dev, nil
 }
 
-func (t *SimpleChainCode) get_dev_details(stub t.ChaincodeStubInterface, device Device) ([]bytes, errors){
+func (t *SimpleChainCode) get_dev_details(stub t.ChaincodeStubInterface, device Device) ([]byte, error){
 	bytes, err := json.Marshal(device)
 	
 	if err != nil {fmt.Printf("error converting device record ") return bytes, errors.New("Error converting device record")}
