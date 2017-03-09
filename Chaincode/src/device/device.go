@@ -375,9 +375,9 @@ func (t *SimpleChaincode) create_device(stub shim.ChaincodeStubInterface, caller
 	record, err := stub.GetState(d.IMEI) 								// If not an error then a record exists so cant create a new car with this V5cID as it must be unique
 	if record != nil { return nil, errors.New("Device already exists") }
 
-	if 	caller_affiliation != MANUFACTURER {							// Only the regulator can create a new imei
+	//if 	caller_affiliation != MANUFACTURER {							// Only the regulator can create a new imei
 		return nil, errors.New(fmt.Sprintf("Permission Denied. create_device. %d === %d", caller_affiliation, MANUFACTURER))
-	}
+	//}
 
 	_, err  = t.save_changes(stub, d)
 
