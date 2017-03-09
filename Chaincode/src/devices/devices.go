@@ -27,14 +27,14 @@ type Device struct {
 	Owner          string `json:"owner"`
 }
 
-type SimpleChainCode Struct {
+type SimpleChainCode struct {
 }
 
-func (t *SimpleChainCode) Init(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error ){
+func (t *SimpleChainCode) Init(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error ) {
 	
 	var imeiIds IMEI_Holder
 	
-	bytes, err := json.marshal(imeiIds);
+	bytes, err := json.Marshal(imeiIds);
 	
 	err = stub.PutState("imeiIds", bytes)
 	
@@ -142,7 +142,7 @@ func (t *SimpleChainCode) get_dev_details(stub t.ChaincodeStubInterface, device 
 }
 
 func main() {
-	err := shim.start(new(SimpleChainCode));
+	err := shim.Start(new(SimpleChainCode));
 	
 	if err != null { fmt.Println("error while starting shim code"); 
 	} else {
