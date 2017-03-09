@@ -42,10 +42,10 @@ func (t *SimpleChainCode) Init(stub shim.ChaincodeStubInterface, function string
 	 
 } 
 
-func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error){
+func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
 	
 	if function = "create_device" {
-		return	t.createDevice(stub, args[])
+		return	t.createDevice(stub, args[0])
 	}	
 	return nil, nil
 }
