@@ -54,7 +54,7 @@ func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function strin
 	var dev  Device
 	if function = "get_device_details" {
 		dev, err = t.get_device(stub, args[0])
-		if err != nil { fmt.Printf("error retrieving device details"); return dev, errors.New("error retrieving device details")}
+		if err != nil { fmt.Printf("error retrieving device details"); return nil, errors.New("error retrieving device details")}
 		return t.get_dev_details(stub, &dev)
 	}
 }
@@ -80,7 +80,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 		fmt.Printf("Invalid device ID")
 	}
 	
-	err = json.unmarshal([]byte(json_device), &dev)
+	err = json.Unmarshal([]byte(json_device), &dev)
 	
 	record, err = stub.GetState(dev.IMEI)
 	
@@ -141,8 +141,7 @@ func (t *SimpleChainCode) get_dev_details(stub t.ChaincodeStubInterface, device 
 	return bytes, nil
 }
 
-func main()
-{
+func main() {
 	err := shim.start(new(SimpleChainCode));
 	
 	if err != null { fmt.Println("error while starting shim code"); 
