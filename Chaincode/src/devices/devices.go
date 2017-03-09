@@ -5,8 +5,6 @@ import (
 	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"encoding/json"
-	"regexp"
-	"strings"
 )
 
 var logger = shim.NewLogger("DIChaincode")
@@ -44,7 +42,7 @@ func (t *SimpleChainCode) Init(stub shim.ChaincodeStubInterface, function string
 
 func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
 	
-	if function = "create_device" {
+	if function == "create_device" {
 		return	t.createDevice(stub, args[0])
 	}	
 	return nil, nil
@@ -52,11 +50,12 @@ func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
 	var dev  Device
-	if function = "get_device_details" {
+	if function == "get_device_details" {
 		dev, err = t.get_device(stub, args[0])
 		if err != nil { fmt.Printf("error retrieving device details"); return nil, errors.New("error retrieving device details")}
 		return t.get_dev_details(stub, &dev)
 	}
+	return nil, nil
 }
 
 func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId string) ([]byte, error) {
@@ -114,7 +113,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 
 }
 
-func (t *SimpleChaincode) save_changes(stub shim.ChaincodeStubInterface, d Device) (bool, error) {
+func (t *SimpleChainCode) save_changes(stub shim.ChaincodeStubInterface, d Device) (bool, error) {
 
 	bytes, err := json.Marshal(d)
 
@@ -127,13 +126,13 @@ func (t *SimpleChaincode) save_changes(stub shim.ChaincodeStubInterface, d Devic
 	return true, nil
 }
 
-func (t *SimpleChainCode) get_device(stub t.ChaincodeStubInterface, imeiId string) (Device, error) {
+func (t *SimpleChainCode) get_device(stub shim.ChaincodeStubInterface, imeiId string) (Device, error) {
 	  dev, err = stub.GetState(imeiId)
 	  if err != nil { fmt.Printf("error while retrieving device"); return dev, errors.New("error retrieving device") }
 	  return dev, nil
 }
 
-func (t *SimpleChainCode) get_dev_details(stub t.ChaincodeStubInterface, device Device) ([]byte, error){
+func (t *SimpleChainCode) get_dev_details(stub shim.ChaincodeStubInterface, device Device) ([]byte, error){
 	bytes, err := json.Marshal(device)
 	
 	if err != nil {fmt.Printf("error converting device record "); return bytes, errors.New("Error converting device record")}
