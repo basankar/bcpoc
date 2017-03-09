@@ -50,11 +50,11 @@ func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	return nil, nil
 }
 
-func (t *SimpleChainCode) Query(Stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
+func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
 	var dev  Device
 	if function = "get_device_details" {
 		dev, err = t.get_device(stub, args[0])
-		if err != nil { fmt.Printf("error retrieving device details") return dev, errors.New("error retrieving device details")}
+		if err != nil { fmt.Printf("error retrieving device details"); return dev, errors.New("error retrieving device details")}
 		return t.get_dev_details(stub, &dev)
 	}
 }
@@ -68,7 +68,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 	DateOfManf  := "\"dateofmanf\":\"''03-12-2016''\" , "
 	DateOfSale  := "\"dateofsale\":\"UNDEFINED\", "
 	OldIMEI     := "\"oldimei\":\"UNDEFINED\", "
-	IMEI_ID     := "\"imei\":\""+imeiId+"\, "
+	IMEI_ID     := "\"imei\":\""+imeiId+"\", "
 	Status     	:= "\"status\":\"CREATED\", "
 	SoldBy     	:= "\"soldby\":\"UNDEFINED\", "
 	Owner     	:= "\"owner\":\"MANF\" "
@@ -129,14 +129,14 @@ func (t *SimpleChaincode) save_changes(stub shim.ChaincodeStubInterface, d Devic
 
 func (t *SimpleChainCode) get_device(stub t.ChaincodeStubInterface, imeiId string) (Device, error) {
 	  dev, err = stub.GetState(imeiId)
-	  if err != nil { fmt.Printf("error while retrieving device") return dev, errors.New("error retrieving device") }
+	  if err != nil { fmt.Printf("error while retrieving device"); return dev, errors.New("error retrieving device") }
 	  return dev, nil
 }
 
 func (t *SimpleChainCode) get_dev_details(stub t.ChaincodeStubInterface, device Device) ([]byte, error){
 	bytes, err := json.Marshal(device)
 	
-	if err != nil {fmt.Printf("error converting device record ") return bytes, errors.New("Error converting device record")}
+	if err != nil {fmt.Printf("error converting device record "); return bytes, errors.New("Error converting device record")}
 	
 	return bytes, nil
 }
@@ -145,7 +145,7 @@ func main()
 {
 	err := shim.start(new(SimpleChainCode));
 	
-	if err != null { fmt.Println("error while starting shim code") 
+	if err != null { fmt.Println("error while starting shim code"); 
 	} else {
 		fmt.Println("chaincode started");
 	}
