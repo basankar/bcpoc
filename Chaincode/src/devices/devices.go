@@ -49,7 +49,7 @@ func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function stri
 }
 
 func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
-	var d  Device
+	var d Device
 	if function == "get_device_details" {
 		d, err := t.get_device(stub, args[0])
 		if err != nil { fmt.Printf("error retrieving device details"); return nil, errors.New("error retrieving device details")}
@@ -61,6 +61,8 @@ func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function strin
 func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId string) ([]byte, error) {
 	
 	var d Device
+	var err error
+	var IMEI_Ids IMEI_Holder
 	
 	DeviceName  := "\"deviceName\":\"LENOVO\", "
 	DeviceModel := "\"devicemodel\":\"VIBE\", "
@@ -74,8 +76,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 	
 	json_device := " {" +DeviceName+DeviceModel+DateOfManf+DateOfSale+OldIMEI+IMEI_ID+Status+SoldBy+Owner+"} "
 	
-	
-	if IMEI_ID == null {
+	if imeiId == null {
 		fmt.Printf("Invalid device ID")
 	}
 	
@@ -85,7 +86,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 	
 	if record != nil { return nil, errors.New("Device already exists") }
 	
-	_, err = t.save_changes(stub, &d)
+	_, err = t.save_changes(stub, d)
 	
 	if err != nil { fmt.Printf("CREATEDEVICE: Error saving changes: %s", err); return nil, errors.New("Error saving changes") }
 
@@ -93,7 +94,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 
 	if err != nil { return nil, errors.New("Unable to get imeiIds") }
 
-	var IMEI_Ids IMEI_Holder
+	
 
 	err = json.Unmarshal(bytes, &IMEI_Ids)
 
@@ -127,12 +128,16 @@ func (t *SimpleChainCode) save_changes(stub shim.ChaincodeStubInterface, d Devic
 }
 
 func (t *SimpleChainCode) get_device(stub shim.ChaincodeStubInterface, imeiId string) (Device, error) {
+	  var dev Device
+	  var err error
+	  
 	  dev, err = stub.GetState(imeiId)
 	  if err != nil { fmt.Printf("error while retrieving device"); return dev, errors.New("error retrieving device") }
 	  return dev, nil
 }
 
 func (t *SimpleChainCode) get_dev_details(stub shim.ChaincodeStubInterface, device Device) ([]byte, error){
+	var err error
 	bytes, err := json.Marshal(device)
 	
 	if err != nil {fmt.Printf("error converting device record "); return bytes, errors.New("Error converting device record")}
@@ -141,6 +146,7 @@ func (t *SimpleChainCode) get_dev_details(stub shim.ChaincodeStubInterface, devi
 }
 
 func main() {
+	var err error
 	err := shim.Start(new(SimpleChainCode));
 	
 	if err != null { fmt.Println("error while starting shim code"); 
