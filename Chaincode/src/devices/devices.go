@@ -76,7 +76,7 @@ func (t *SimpleChainCode) createDevice(stub shim.ChaincodeStubInterface, imeiId 
 	
 	json_device := " {" +DeviceName+DeviceModel+DateOfManf+DateOfSale+OldIMEI+IMEI_ID+Status+SoldBy+Owner+"} "
 	
-	if imeiId == nil {
+	if imeiId == "" {
 		fmt.Printf("Invalid device ID")
 	}
 	
@@ -129,9 +129,9 @@ func (t *SimpleChainCode) save_changes(stub shim.ChaincodeStubInterface, d Devic
 
 func (t *SimpleChainCode) get_device(stub shim.ChaincodeStubInterface, imeiId string) (Device, error) {
 	  var dev Device
-	  bytes, err = stub.GetState(imeiId)
+	  bytes, err := stub.GetState(imeiId)
 	  if err != nil { fmt.Printf("error while retrieving device"); return dev, errors.New("error retrieving device") }
-	  err  = json.Unmarshal(bytes, dev)
+	  err  := json.Unmarshal(bytes, dev)
 	  if err != null {fmt.Printf("failed to convert device data"); return dev, errors.New("error unmarshalling data") }
 	  return dev, nil
 }
