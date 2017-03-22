@@ -49,7 +49,7 @@ func (t *SimpleChainCode) Invoke(stub shim.ChaincodeStubInterface, function stri
 }
 
 func (t *SimpleChainCode) Query(stub shim.ChaincodeStubInterface, function string, args[] string) ([]byte, error) {
-	var d Device
+	
 	if function == "get_device_details" {
 		d, err := t.get_device(stub, args[0])
 		if err != nil { fmt.Printf("error retrieving device details"); return nil, errors.New("error retrieving device details")}
